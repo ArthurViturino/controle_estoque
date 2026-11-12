@@ -1,25 +1,29 @@
-#v1.1 - Sistema de Controle de Estoque em Python
+#v1.2 - Sistema de Controle de Estoque em Python
 
 estoque_produtos = [
     {
         "nome": "Notebook",
         "quantidade": 10,
-        "preco": 3500.00
+        "preco": 3500.00,
+        "categoria": "Informática"
     },
     {
         "nome": "Mouse",
         "quantidade": 25,
-        "preco": 89.90
+        "preco": 89.90,
+        "categoria": "Periféricos"
     },
     {
         "nome": "Teclado",
         "quantidade": 15,
-        "preco": 150.50
+        "preco": 150.50,
+        "categoria": "Periféricos"
     }
 ]
 
-# Loop principal do sistema.
+# Menu principal do sistema.
 def exibir_menu():
+
     print("\n=== Sistema de Controle de Estoque ===")
     print("1 - Visualizar Estoque Atual")
     print("2 - Registrar Entrada de Produto")
@@ -30,6 +34,28 @@ def exibir_menu():
 
     return opcao_usuario
 
+# Menu de visualização do estoque.
+def menu_visualizacao(estoque_produtos):
+    while True:
+        print("\n=== Visualizar Estoque ===")
+        print("1 - Visualizar todos os produtos")
+        print("2 - Filtrar por categoria")
+        print("3 - Voltar ao menu principal")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "1":
+            visualizar_estoque(estoque_produtos)
+
+        elif opcao == "2":
+            menu_categorias(estoque_produtos)
+
+        elif opcao == "3":
+            break
+
+        else:
+            print("Opção inválida. Por favor, escolha uma opção válida.")
+
 # Opção 1 - Visualizar estoque.
 def visualizar_estoque(estoque_produtos):
     print("\n=== Estoque Atual ===")
@@ -37,58 +63,115 @@ def visualizar_estoque(estoque_produtos):
     for produto in estoque_produtos:
         print(f"Produto: {produto['nome']}")
         print(f"Quantidade: {produto['quantidade']}")
-        print(f"Preço: R${produto['preco']:.2f}\n")
+        print(f"Preço: R${produto['preco']:.2f}")
+        print(f"Categoria: {produto['categoria']}\n")
 
 # Opção 2 - Registrar entrada de produto.
 def registrar_entrada(estoque_produtos):
-        print("\n=== Registrar Entrada de Produto ===")
-        nome_produto = input("Digite o nome do produto: ")
+    print("\n=== Registrar Entrada de Produto ===")
 
-        quantidade_entrada = int(input("Digite a quantidade de entrada: "))
+    while True:
+        nome_produto = input("Digite o nome do produto: ").strip()
 
-        produto_encontrado = False
-
+        produto_encontrado = None
         for produto in estoque_produtos:
             if produto["nome"].lower() == nome_produto.lower():
-                produto["quantidade"] += quantidade_entrada
-                produto_encontrado = True
-
-                print("Quantidade atualizada com sucesso.")
+                produto_encontrado = produto
                 break
 
-        if not produto_encontrado:
+        if produto_encontrado is None:
             print("Produto não encontrado.")
+            continue
+
+        while True:
+            try:
+                quantidade_entrada = int(input("Digite a quantidade de entrada: "))
+            except ValueError:
+                print("Digite um número inteiro válido.")
+                continue
+
+            if quantidade_entrada <= 0:
+                print("A quantidade deve ser maior que zero.")
+                continue
+
+            break
+
+        produto_encontrado["quantidade"] += quantidade_entrada
+        print("Quantidade atualizada com sucesso.")
+        break
 
 # Opção 3 - Registrar saída de produto.
 def registrar_saida(estoque_produtos):
     print("\n=== Registrar Saída de Produto ===")
-    nome_produto = input("Digite o nome do produto: ")
 
-    quantidade_saida = int(input("Digite a quantidade de saída: "))
+    while True:
+        nome_produto = input("Digite o nome do produto: ").strip()
 
-    produto_encontrado = False
+        produto_encontrado = None
+        for produto in estoque_produtos:
+            if produto["nome"].lower() == nome_produto.lower():
+                produto_encontrado = produto
+                break
 
-    for produto in estoque_produtos:
-        if produto["nome"].lower() == nome_produto.lower():
-            produto_encontrado = True
+        if produto_encontrado is None:
+            print("Produto não encontrado.")
+            continue
 
-            if produto["quantidade"] >= quantidade_saida:
-                produto["quantidade"] -= quantidade_saida
+        while True:
+            try:
+                quantidade_saida = int(input("Digite a quantidade de saída: "))
+            except ValueError:
+                print("Digite um número inteiro válido.")
+                continue
 
-                print("Saída registrada com sucesso.")
-            else:
-                print("Estoque insuficiente.")
+            if quantidade_saida <= 0:
+                print("A quantidade deve ser maior que zero.")
+                continue
+
+            if quantidade_saida > produto_encontrado["quantidade"]:
+                print("Quantidade insuficiente em estoque.")
+                continue
 
             break
 
-    if not produto_encontrado:
-        print("Produto não encontrado.")
+        produto_encontrado["quantidade"] -= quantidade_saida
+        print("Quantidade atualizada com sucesso.")
+        break
 
+# Opção 2 - Filtrar por categoria.
+def menu_categorias(estoque_produtos):
+    categorias = {
+        "1": "Informática",
+        "2": "Periféricos"
+    }
+
+    while True:
+        print("\n=== Categorias ===")
+        print("1 - Informática")
+        print("2 - Periféricos")
+        print("3 - Voltar")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao in categorias:
+            categoria = categorias[opcao]
+            produtos_filtrados = [
+                produto
+                for produto in estoque_produtos
+                if produto["categoria"] == categoria
+            ]
+            visualizar_estoque(produtos_filtrados)
+        elif opcao == "3":
+            break
+        else:
+            print("Opção inválida. Por favor, escolha uma opção válida.")
+
+# Loop de suporte para o sistema principal.
 while True:
     opcao_usuario = exibir_menu()
 
     if opcao_usuario == "1":
-        visualizar_estoque(estoque_produtos)
+        menu_visualizacao(estoque_produtos)
 
     elif opcao_usuario == "2":
         registrar_entrada(estoque_produtos)
