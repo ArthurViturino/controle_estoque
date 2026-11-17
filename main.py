@@ -1,4 +1,4 @@
-#v1.4 - Sistema de Controle de Estoque em Python
+#v1.4.1 - Sistema de Controle de Estoque em Python
 
 # Bibliotecas.
 import unicodedata
