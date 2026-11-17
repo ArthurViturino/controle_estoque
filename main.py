@@ -1,4 +1,18 @@
-#v1.3 - Sistema de Controle de Estoque em Python
+#v1.4.1 - Sistema de Controle de Estoque em Python
+
+# Bibliotecas.
+import unicodedata
+
+def normalizar_texto(texto):
+    texto = unicodedata.normalize("NFD", texto)
+
+    texto_sem_acentos = ""
+
+    for caractere in texto:
+        if unicodedata.category(caractere) != "Mn":
+            texto_sem_acentos += caractere
+
+    return texto_sem_acentos.lower().strip()
 
 estoque_produtos = [
     {
@@ -41,12 +55,13 @@ def exibir_menu():
     print("1 - Visualizar Estoque Atual")
     print("2 - Registrar Entrada de Produto")
     print("3 - Registrar Saída de Produto")
+    print("4 - Gerenciar Produtos")
 
     opcao_usuario = input("Escolha uma opção: ")
 
     return opcao_usuario
 
-# Menu de visualização do estoque.
+# Submenu de visualização do estoque.
 def menu_visualizacao(estoque_produtos):
     while True:
         print("\n=== Visualizar Estoque ===")
@@ -74,7 +89,34 @@ def menu_visualizacao(estoque_produtos):
         else:
             print("Opção inválida. Por favor, escolha uma opção válida.")
 
-# Opção 1 - Visualizar estoque.
+# Submenu de gerenciamento de produtos.
+def gerenciamento_produtos(estoque_produtos):
+    while True:
+        print("\n=== Gerenciamento de Produtos ===")
+        print("0 - Voltar ao menu principal")
+        print("1 - Cadastrar novo produto")
+        print("2 - Excluir produto")
+        print("3 - Pesquisar produto")
+
+        opcao = input("Escolha uma opção: ")
+
+        if opcao == "0":
+            print("Voltando ao menu principal...")
+            return False
+
+        elif opcao == "1":
+            cadastrar_produto(estoque_produtos)
+
+        elif opcao == "2":
+            excluir_produto(estoque_produtos)
+
+        elif opcao == "3":
+            pesquisar_produto(estoque_produtos)
+
+        else:
+            print("Opção inválida. Por favor, escolha uma opção válida.")
+
+# Menu principal, opção 1 - Visualizar estoque.
 def visualizar_estoque(estoque_produtos):
     print("\n" + "=== Estoque Atual ===".center(69))
     print("\n")
@@ -95,7 +137,7 @@ def visualizar_estoque(estoque_produtos):
     print("-" * 70)
     print(f"Valor total do estoque: R${valor_total_estoque:.2f}")
 
-# Opção 2 - Registrar entrada de produto.
+# Menu principal, opção 2 - Registrar entrada de produto.
 def registrar_entrada(estoque_produtos):
     print("\n=== Registrar Entrada de Produto ===")
 
@@ -108,7 +150,7 @@ def registrar_entrada(estoque_produtos):
 
         produto_encontrado = None
         for produto in estoque_produtos:
-            if produto["nome"].lower() == nome_produto.lower():
+            if normalizar_texto(produto["nome"]) == normalizar_texto(nome_produto):
                 produto_encontrado = produto
                 break
 
@@ -137,7 +179,7 @@ def registrar_entrada(estoque_produtos):
         print("Quantidade atualizada com sucesso.")
         break
 
-# Opção 3 - Registrar saída de produto.
+# Menu principal, opção 3 - Registrar saída de produto.
 def registrar_saida(estoque_produtos):
     print("\n=== Registrar Saída de Produto ===")
 
@@ -150,7 +192,7 @@ def registrar_saida(estoque_produtos):
 
         produto_encontrado = None
         for produto in estoque_produtos:
-            if produto["nome"].lower() == nome_produto.lower():
+            if normalizar_texto(produto["nome"]) == normalizar_texto(nome_produto):
                 produto_encontrado = produto
                 break
 
@@ -236,6 +278,101 @@ def menu_categorias(estoque_produtos):
     visualizar_estoque(produtos_filtrados)
     return False
 
+# Submenu de cadastro de produto.
+def cadastrar_produto(estoque_produtos):
+    print("\n" + "=== Cadastrar Novo Produto ===".center(69))
+
+    while True:
+        nome_cadastro = input("Digite o nome do produto (ou 0 para voltar): ").strip()
+
+        if nome_cadastro == "0":
+            print("Cadastro cancelado. Voltando ao menu de gerenciamento...")
+            return
+
+        elif not nome_cadastro:
+            print("Preencha o nome do produto.")
+            continue
+
+        produto_existente = False
+        for produto in estoque_produtos:
+            if normalizar_texto(produto["nome"]) == normalizar_texto(nome_cadastro):
+                produto_existente = True
+                break
+            
+        if produto_existente is True:
+            print("Produto já cadastrado.")
+            continue
+        break
+
+    while True:
+        try:
+            quantidade_cadastro = int(input("Digite a quantidade do produto: "))
+        except ValueError:
+            print("Digite um número inteiro válido.")
+            continue
+        if quantidade_cadastro < 0:
+            print("A quantidade não pode ser negativa.")
+            continue
+        break
+
+    while True:
+        try:
+            preco_cadastro = float(input("Digite o preço do produto: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+        if preco_cadastro <= 0:
+            print("O preço não pode ser zero ou negativo.")
+            continue
+        break
+
+    while True:
+        categoria_cadastro = input("Digite a categoria do produto: ").strip()
+        if not categoria_cadastro:
+            print("Preencha a categoria do produto.")
+            continue
+
+        for produto in estoque_produtos:
+            if normalizar_texto(produto["categoria"]) == normalizar_texto(categoria_cadastro):
+                categoria_cadastro = produto["categoria"]
+                print(f"Categoria já cadastrada. Utilizando categoria existente: {categoria_cadastro}")
+                break
+
+        break
+
+    novo_produto = {
+        "nome": nome_cadastro,
+        "quantidade": quantidade_cadastro,
+        "preco": preco_cadastro,
+        "categoria": categoria_cadastro
+    }
+
+    print("\n" + "=== Confirmação de Cadastro ===".center(69))
+    print(f"Nome: {novo_produto['nome']}")
+    print(f"Quantidade: {novo_produto['quantidade']}")
+    print(f"Preço: R$ {novo_produto['preco']:.2f}")
+    print(f"Categoria: {novo_produto['categoria']}")
+    print("\n")
+    print("0 - Confirmar cadastro")
+    print("1 - Cancelar e voltar")
+
+    while True:
+        try:
+            opcao_confirmacao = int(input("Escolha uma opção: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+        if opcao_confirmacao not in [0, 1]:
+            print("Escolha uma opção válida.")
+            continue
+
+        if opcao_confirmacao == 0:
+            estoque_produtos.append(novo_produto)
+            print("Produto cadastrado com sucesso.")
+        elif opcao_confirmacao == 1:
+            print("Cadastro cancelado.")
+        break
+
 # Loop de suporte para o sistema principal.
 while True:
     opcao_usuario = exibir_menu()
@@ -249,6 +386,10 @@ while True:
 
     elif opcao_usuario == "3":
         registrar_saida(estoque_produtos)
+
+    elif opcao_usuario == "4":
+        if gerenciamento_produtos(estoque_produtos):
+            break
 
     elif opcao_usuario == "0":
         print("Encerrando o sistema...")
