@@ -1,4 +1,4 @@
-#v1.4.1 - Sistema de Controle de Estoque em Python
+#v1.4.2 - Sistema de Controle de Estoque em Python
 
 # Bibliotecas.
 import unicodedata
@@ -14,6 +14,7 @@ def normalizar_texto(texto):
 
     return texto_sem_acentos.lower().strip()
 
+# Listas de produtos em estoque.
 estoque_produtos = [
     {
         "nome": "Notebook",
@@ -26,6 +27,18 @@ estoque_produtos = [
         "quantidade": 25,
         "preco": 89.90,
         "categoria": "Periféricos"
+    },
+    {
+        "nome": "Fone com fio",
+        "quantidade": 5,
+        "preco": 25.00,
+        "categoria": "periféricos"
+    },
+    {
+        "nome": "Fone bluetooth",
+        "quantidade": 10,
+        "preco": 100.00,
+        "categoria": "periféricos"
     },
     {
         "nome": "Teclado",
@@ -119,7 +132,7 @@ def gerenciamento_produtos(estoque_produtos):
 # Menu principal, opção 1 - Visualizar estoque.
 def visualizar_estoque(estoque_produtos):
     print("\n" + "=== Estoque Atual ===".center(69))
-    print("\n")
+    print()
 
     if not estoque_produtos:
         print("Não há produtos cadastrados no estoque.".center(69))
@@ -172,7 +185,6 @@ def registrar_entrada(estoque_produtos):
             if quantidade_entrada <= 0:
                 print("A quantidade deve ser maior que zero.")
                 continue
-
             break
 
         produto_encontrado["quantidade"] += quantidade_entrada
@@ -218,7 +230,6 @@ def registrar_saida(estoque_produtos):
             if quantidade_saida > produto_encontrado["quantidade"]:
                 print("Quantidade insuficiente em estoque.")
                 continue
-
             break
 
         produto_encontrado["quantidade"] -= quantidade_saida
@@ -237,7 +248,9 @@ def menu_categorias(estoque_produtos):
     for produto in estoque_produtos:
         categoria = produto["categoria"]
 
-        if categoria not in categorias_produtos:
+        if normalizar_texto(categoria) not in [
+        normalizar_texto(cat) for cat in categorias_produtos
+        ]:
             categorias_produtos.append(categoria)
 
     while True:
@@ -272,7 +285,7 @@ def menu_categorias(estoque_produtos):
     produtos_filtrados = []
 
     for produto in estoque_produtos:
-        if produto["categoria"] == categoria_escolhida:
+        if normalizar_texto(produto["categoria"]) == normalizar_texto(categoria_escolhida):
             produtos_filtrados.append(produto)
 
     visualizar_estoque(produtos_filtrados)
@@ -337,7 +350,6 @@ def cadastrar_produto(estoque_produtos):
                 categoria_cadastro = produto["categoria"]
                 print(f"Categoria já cadastrada. Utilizando categoria existente: {categoria_cadastro}")
                 break
-
         break
 
     novo_produto = {
@@ -352,7 +364,7 @@ def cadastrar_produto(estoque_produtos):
     print(f"Quantidade: {novo_produto['quantidade']}")
     print(f"Preço: R$ {novo_produto['preco']:.2f}")
     print(f"Categoria: {novo_produto['categoria']}")
-    print("\n")
+    print()
     print("0 - Confirmar cadastro")
     print("1 - Cancelar e voltar")
 
@@ -372,6 +384,138 @@ def cadastrar_produto(estoque_produtos):
         elif opcao_confirmacao == 1:
             print("Cadastro cancelado.")
         break
+
+# Submenu de exclusão de produto.
+def excluir_produto(estoque_produtos):
+    print("\n" + "=== Excluir Produto ===".center(69))
+
+    categorias_produtos = []
+
+    for produto in estoque_produtos:
+        categoria = produto["categoria"]
+
+        if normalizar_texto(categoria) not in [
+        normalizar_texto(cat) for cat in categorias_produtos
+        ]:
+            categorias_produtos.append(categoria)
+
+    while True:
+        print("=== Categorias ===".center(69))
+        print()
+        print("0 - Encerrar o sistema")
+
+        for indice, categoria in enumerate(categorias_produtos, start=1):
+            print(f"{indice} - {categoria}")
+
+        print(f"{len(categorias_produtos) + 1} - Voltar")
+
+        try:
+            opcao_categoria = int(input("Escolha uma categoria: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+
+        if opcao_categoria == 0:
+            print("Encerrando o sistema...")
+            return False
+
+        if opcao_categoria == len(categorias_produtos) + 1:
+            return False
+
+        if opcao_categoria < 1 or opcao_categoria > len(categorias_produtos):
+            print("Escolha uma categoria válida.")
+            continue
+        break
+
+    categoria_selecionada = categorias_produtos[opcao_categoria - 1]
+
+    produtos_categoria = []
+
+    for produto in estoque_produtos:
+        if normalizar_texto(produto["categoria"]) == normalizar_texto(categoria_selecionada):
+            produtos_categoria.append(produto)
+
+    print("\n" + "=== Produtos da Categoria ===".center(69))
+    print()
+    for indice, produto in enumerate(produtos_categoria, start=1):
+        print(f"{indice} - {produto['nome']}")
+    print("0 - Voltar")
+
+    while True:
+        try:
+            opcao_exclusao = int(input("Escolha um produto para excluir: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+        if opcao_exclusao == 0:
+            print("Operação cancelada. Voltando ao menu de gerenciamento...")
+            return False
+        if opcao_exclusao < 1 or opcao_exclusao > len(produtos_categoria):
+            print("Escolha um produto válido.")
+            continue
+        break
+
+    produto_selecionado_exclusao = produtos_categoria[opcao_exclusao - 1]
+
+    print("\n" + "=== Confirmação de Exclusão ===".center(69))
+    print(f"Nome: {produto_selecionado_exclusao['nome']}")
+    print(f"Quantidade: {produto_selecionado_exclusao['quantidade']}")
+    print(f"Preço: R$ {produto_selecionado_exclusao['preco']:.2f}")
+    print(f"Categoria: {produto_selecionado_exclusao['categoria']}")
+    print()
+    print("0 - Confirmar exclusão")
+    print("1 - Cancelar e voltar")
+
+    while True:
+        try:
+            opcao_confirmacao_exclusao = int(input("Escolha uma opção: "))
+        except ValueError:
+            print("Digite um número válido.")
+            continue
+        if opcao_confirmacao_exclusao not in [0, 1]:
+            print("Escolha uma opção válida.")
+            continue
+
+        if opcao_confirmacao_exclusao == 0:
+            estoque_produtos.remove(produto_selecionado_exclusao)
+            print("Produto excluído com sucesso.")
+            return False
+        elif opcao_confirmacao_exclusao == 1:
+            print("Exclusão cancelada.")
+            return False
+        break
+
+# Submenu de pesquisa de produto.
+def pesquisar_produto(estoque_produtos):
+    print("\n" + "=== Pesquisar Produto ===".center(69))
+    print()
+
+    while True:
+        nome_pesquisa = normalizar_texto(input("Digite o nome do produto para pesquisar (ou 0 para voltar): "))
+
+        if nome_pesquisa == "0":
+            print("Pesquisa cancelada. Voltando ao menu de gerenciamento...")
+            return
+        if not nome_pesquisa:
+            print("Preencha o nome do produto.")
+            continue
+        
+        produtos_encontrados = []
+
+        for produto in estoque_produtos:
+            if nome_pesquisa in normalizar_texto(produto["nome"]):
+                produtos_encontrados.append(produto)
+
+        if produtos_encontrados:
+            print("\n" + "=== Produtos Encontrados ===".center(69))
+            for produto in produtos_encontrados:
+                print(f"Nome: {produto['nome']}")
+                print(f"Quantidade: {produto['quantidade']}")
+                print(f"Preço: R$ {produto['preco']:.2f}")
+                print(f"Categoria: {produto['categoria']}")
+                print("-" * 69)
+        else:
+            print("Nenhum produto encontrado com esse nome.")
 
 # Loop de suporte para o sistema principal.
 while True:
