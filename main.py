@@ -1,6 +1,8 @@
-#v1.4.2 - Sistema de Controle de Estoque em Python
+#v1.5 - Sistema de Controle de Estoque em Python
 
 # Bibliotecas.
+import json
+import os
 import unicodedata
 
 def normalizar_texto(texto):
@@ -14,52 +16,32 @@ def normalizar_texto(texto):
 
     return texto_sem_acentos.lower().strip()
 
-# Listas de produtos em estoque.
-estoque_produtos = [
-    {
-        "nome": "Notebook",
-        "quantidade": 10,
-        "preco": 3500.00,
-        "categoria": "Informática"
-    },
-    {
-        "nome": "Mouse",
-        "quantidade": 25,
-        "preco": 89.90,
-        "categoria": "Periféricos"
-    },
-    {
-        "nome": "Fone com fio",
-        "quantidade": 5,
-        "preco": 25.00,
-        "categoria": "periféricos"
-    },
-    {
-        "nome": "Fone bluetooth",
-        "quantidade": 10,
-        "preco": 100.00,
-        "categoria": "periféricos"
-    },
-    {
-        "nome": "Teclado",
-        "quantidade": 15,
-        "preco": 150.50,
-        "categoria": "Periféricos"
-    },
-    {
-        "nome": "Monitor",
-        "quantidade": 8,
-        "preco": 1200.00,
-        "categoria": "Informática"
-    },
-    {
-        "nome": "Impressora",
-        "quantidade": 5,
-        "preco": 800.00,
-        "categoria": "Impressoras"
-    }
-]
+# Carregar dados do estoque.json
 
+def carregar_estoque():
+    if os.path.exists("estoque.json"):
+        try:
+            with open("estoque.json", "r", encoding="utf-8") as arquivo:
+                estoque = json.load(arquivo)
+        except json.JSONDecodeError:
+            print("Erro: O arquivo estoque.json está corrompido. Criando um novo arquivo.")
+            estoque = []
+            with open("estoque.json", "w", encoding="utf-8") as arquivo:
+                json.dump(estoque, arquivo, ensure_ascii=False, indent=4)
+    else:
+        estoque = []
+        with open("estoque.json", "w", encoding="utf-8") as arquivo:
+            json.dump(estoque, arquivo, ensure_ascii=False, indent=4)
+    return estoque
+
+# Iniciar/Salvar dados no estoque.json
+
+def salvar_estoque():
+    with open("estoque.json", "w", encoding="utf-8") as arquivo:
+        json.dump(estoque_produtos, arquivo, ensure_ascii=False, indent=4)
+
+estoque_produtos = carregar_estoque()
+salvar_estoque()
 # Menu principal do sistema.
 def exibir_menu():
 
@@ -188,6 +170,7 @@ def registrar_entrada(estoque_produtos):
             break
 
         produto_encontrado["quantidade"] += quantidade_entrada
+        salvar_estoque()
         print("Quantidade atualizada com sucesso.")
         break
 
@@ -233,6 +216,7 @@ def registrar_saida(estoque_produtos):
             break
 
         produto_encontrado["quantidade"] -= quantidade_saida
+        salvar_estoque()
         print("Quantidade atualizada com sucesso.")
         break
 
@@ -380,6 +364,7 @@ def cadastrar_produto(estoque_produtos):
 
         if opcao_confirmacao == 0:
             estoque_produtos.append(novo_produto)
+            salvar_estoque()
             print("Produto cadastrado com sucesso.")
         elif opcao_confirmacao == 1:
             print("Cadastro cancelado.")
@@ -478,6 +463,7 @@ def excluir_produto(estoque_produtos):
 
         if opcao_confirmacao_exclusao == 0:
             estoque_produtos.remove(produto_selecionado_exclusao)
+            salvar_estoque()
             print("Produto excluído com sucesso.")
             return False
         elif opcao_confirmacao_exclusao == 1:

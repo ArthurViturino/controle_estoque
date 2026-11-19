@@ -1,0 +1,44 @@
+[
+    {
+        "nome": "Notebook",
+        "quantidade": 12,
+        "preco": 3500.0,
+        "categoria": "Eletrônicos"
+    },
+    {
+        "nome": "Mouse",
+        "quantidade": 25,
+        "preco": 89.9,
+        "categoria": "Periféricos"
+    },
+    {
+        "nome": "Teclado",
+        "quantidade": 15,
+        "preco": 150.5,
+        "categoria": "Periféricos"
+    },
+    {
+        "nome": "Monitor",
+        "quantidade": 8,
+        "preco": 950.0,
+        "categoria": "Eletrônicos"
+    },
+    {
+        "nome": "Headset",
+        "quantidade": 12,
+        "preco": 199.9,
+        "categoria": "Acessórios"
+    },
+    {
+        "nome": "Webcam",
+        "quantidade": 6,
+        "preco": 279.9,
+        "categoria": "Acessórios"
+    },
+    {
+        "nome": "Tablet",
+        "quantidade": 7,
+        "preco": 860.0,
+        "categoria": "Eletrônicos"
+    }
+]
