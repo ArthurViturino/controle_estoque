@@ -1,1 +1,3 @@
 estoque_backup.json
+__pycache__/
+*.py[cod]

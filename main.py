@@ -1,4 +1,4 @@
-#v1.5 - Sistema de Controle de Estoque em Python
+# v1.6 - Sistema de Controle de Estoque em Python.
 
 # Bibliotecas.
 import json
@@ -34,14 +34,6 @@ def carregar_estoque():
             json.dump(estoque, arquivo, ensure_ascii=False, indent=4)
     return estoque
 
-# Iniciar/Salvar dados no estoque.json
-
-def salvar_estoque():
-    with open("estoque.json", "w", encoding="utf-8") as arquivo:
-        json.dump(estoque_produtos, arquivo, ensure_ascii=False, indent=4)
-
-estoque_produtos = carregar_estoque()
-salvar_estoque()
 # Menu principal do sistema.
 def exibir_menu():
 
@@ -170,7 +162,7 @@ def registrar_entrada(estoque_produtos):
             break
 
         produto_encontrado["quantidade"] += quantidade_entrada
-        salvar_estoque()
+        salvar_estoque(estoque_produtos)
         print("Quantidade atualizada com sucesso.")
         break
 
@@ -216,7 +208,7 @@ def registrar_saida(estoque_produtos):
             break
 
         produto_encontrado["quantidade"] -= quantidade_saida
-        salvar_estoque()
+        salvar_estoque(estoque_produtos)
         print("Quantidade atualizada com sucesso.")
         break
 
@@ -364,7 +356,7 @@ def cadastrar_produto(estoque_produtos):
 
         if opcao_confirmacao == 0:
             estoque_produtos.append(novo_produto)
-            salvar_estoque()
+            salvar_estoque(estoque_produtos)
             print("Produto cadastrado com sucesso.")
         elif opcao_confirmacao == 1:
             print("Cadastro cancelado.")
@@ -373,6 +365,7 @@ def cadastrar_produto(estoque_produtos):
 # Submenu de exclusão de produto.
 def excluir_produto(estoque_produtos):
     print("\n" + "=== Excluir Produto ===".center(69))
+    print()
 
     categorias_produtos = []
 
@@ -432,9 +425,11 @@ def excluir_produto(estoque_produtos):
         except ValueError:
             print("Digite um número válido.")
             continue
+
         if opcao_exclusao == 0:
             print("Operação cancelada. Voltando ao menu de gerenciamento...")
             return False
+        
         if opcao_exclusao < 1 or opcao_exclusao > len(produtos_categoria):
             print("Escolha um produto válido.")
             continue
@@ -457,19 +452,20 @@ def excluir_produto(estoque_produtos):
         except ValueError:
             print("Digite um número válido.")
             continue
+
         if opcao_confirmacao_exclusao not in [0, 1]:
             print("Escolha uma opção válida.")
             continue
 
         if opcao_confirmacao_exclusao == 0:
             estoque_produtos.remove(produto_selecionado_exclusao)
-            salvar_estoque()
+            salvar_estoque(estoque_produtos)
             print("Produto excluído com sucesso.")
             return False
+        
         elif opcao_confirmacao_exclusao == 1:
             print("Exclusão cancelada.")
             return False
-        break
 
 # Submenu de pesquisa de produto.
 def pesquisar_produto(estoque_produtos):
@@ -482,6 +478,7 @@ def pesquisar_produto(estoque_produtos):
         if nome_pesquisa == "0":
             print("Pesquisa cancelada. Voltando ao menu de gerenciamento...")
             return
+        
         if not nome_pesquisa:
             print("Preencha o nome do produto.")
             continue
@@ -504,26 +501,39 @@ def pesquisar_produto(estoque_produtos):
             print("Nenhum produto encontrado com esse nome.")
 
 # Loop de suporte para o sistema principal.
-while True:
-    opcao_usuario = exibir_menu()
+def main():
 
-    if opcao_usuario == "1":
-        if menu_visualizacao(estoque_produtos):
+    estoque_produtos = carregar_estoque()
+
+    while True:
+        opcao_usuario = exibir_menu()
+
+        if opcao_usuario == "1":
+            if menu_visualizacao(estoque_produtos):
+                break
+
+        elif opcao_usuario == "2":
+            registrar_entrada(estoque_produtos)
+
+        elif opcao_usuario == "3":
+            registrar_saida(estoque_produtos)
+
+        elif opcao_usuario == "4":
+            if gerenciamento_produtos(estoque_produtos):
+                break
+
+        elif opcao_usuario == "0":
+            print("Encerrando o sistema...")
             break
 
-    elif opcao_usuario == "2":
-        registrar_entrada(estoque_produtos)
+        else:
+            print("Opção inválida. Por favor, escolha uma opção válida.")
 
-    elif opcao_usuario == "3":
-        registrar_saida(estoque_produtos)
+# Iniciar/Salvar dados no estoque.json
 
-    elif opcao_usuario == "4":
-        if gerenciamento_produtos(estoque_produtos):
-            break
+def salvar_estoque(estoque_produtos):
+    with open("estoque.json", "w", encoding="utf-8") as arquivo:
+        json.dump(estoque_produtos, arquivo, ensure_ascii=False, indent=4)
 
-    elif opcao_usuario == "0":
-        print("Encerrando o sistema...")
-        break
-
-    else:
-        print("Opção inválida. Por favor, escolha uma opção válida.")
+if __name__ == "__main__":
+    main()
