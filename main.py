@@ -1,9 +1,10 @@
-# v1.6 - Sistema de Controle de Estoque em Python.
+# v1.8 - Sistema de Controle de Estoque em Python.
 
 # Bibliotecas.
 import json
 import os
 import unicodedata
+from database import verificar_sincronizacao, consulta_produtos
 
 def normalizar_texto(texto):
     texto = unicodedata.normalize("NFD", texto)
@@ -17,7 +18,6 @@ def normalizar_texto(texto):
     return texto_sem_acentos.lower().strip()
 
 # Carregar dados do estoque.json
-
 def carregar_estoque():
     if os.path.exists("estoque.json"):
         try:
@@ -64,10 +64,12 @@ def menu_visualizacao(estoque_produtos):
             return True
 
         elif opcao == "1":
-            visualizar_estoque(estoque_produtos)
+            produtos = consulta_produtos()
+            visualizar_estoque(produtos)
 
         elif opcao == "2":
-            if menu_categorias(estoque_produtos):
+            produtos = consulta_produtos()
+            if menu_categorias(produtos):
                 return True
 
         elif opcao == "3":
@@ -503,6 +505,11 @@ def pesquisar_produto(estoque_produtos):
 # Loop de suporte para o sistema principal.
 def main():
 
+    resultado_sincronizacao = verificar_sincronizacao()
+    if not resultado_sincronizacao:
+        print("Encerrando o sistema...")
+        return
+
     estoque_produtos = carregar_estoque()
 
     while True:
@@ -530,7 +537,6 @@ def main():
             print("Opção inválida. Por favor, escolha uma opção válida.")
 
 # Iniciar/Salvar dados no estoque.json
-
 def salvar_estoque(estoque_produtos):
     with open("estoque.json", "w", encoding="utf-8") as arquivo:
         json.dump(estoque_produtos, arquivo, ensure_ascii=False, indent=4)
