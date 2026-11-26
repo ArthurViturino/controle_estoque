@@ -1,44 +1,26 @@
 [
     {
-        "nome": "Notebook",
-        "quantidade": 12,
-        "preco": 3500.0,
-        "categoria": "Eletrônicos"
+        "nome": "Monitor 144hz",
+        "quantidade": 10,
+        "preco": 750.0,
+        "categoria": "Monitores"
     },
     {
-        "nome": "Mouse",
-        "quantidade": 25,
-        "preco": 89.9,
+        "nome": "Mouse Basico",
+        "quantidade": 18,
+        "preco": 32.0,
         "categoria": "Periféricos"
     },
     {
-        "nome": "Teclado",
-        "quantidade": 15,
-        "preco": 150.5,
+        "nome": "Teclado Basico",
+        "quantidade": 20,
+        "preco": 43.0,
         "categoria": "Periféricos"
     },
     {
-        "nome": "Monitor",
-        "quantidade": 8,
-        "preco": 950.0,
-        "categoria": "Eletrônicos"
-    },
-    {
-        "nome": "Headset",
-        "quantidade": 12,
-        "preco": 199.9,
-        "categoria": "Acessórios"
-    },
-    {
-        "nome": "Webcam",
-        "quantidade": 6,
-        "preco": 279.9,
-        "categoria": "Acessórios"
-    },
-    {
-        "nome": "Tablet",
-        "quantidade": 7,
-        "preco": 860.0,
-        "categoria": "Eletrônicos"
+        "nome": "headset gamer",
+        "quantidade": 10,
+        "preco": 120.0,
+        "categoria": "Periféricos"
     }
 ]

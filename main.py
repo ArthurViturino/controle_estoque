@@ -1,10 +1,16 @@
-# v1.8 - Sistema de Controle de Estoque em Python.
+# v1.8.2 - Sistema de Controle de Estoque em Python.
 
 # Bibliotecas.
 import json
 import os
 import unicodedata
-from database import verificar_sincronizacao, consulta_produtos
+from database import (
+    CONTINUAR_DADOS_ANTIGOS,
+    ENCERRAR_SISTEMA,
+    SINCRONIZACAO_REALIZADA,
+    verificar_sincronizacao,
+    consulta_produtos,
+)
 
 def normalizar_texto(texto):
     texto = unicodedata.normalize("NFD", texto)
@@ -35,21 +41,29 @@ def carregar_estoque():
     return estoque
 
 # Menu principal do sistema.
-def exibir_menu():
+def exibir_menu(modo_somente_leitura):
 
     print("\n=== Sistema de Controle de Estoque ===")
+
+    if modo_somente_leitura:
+        print("\n[MODO SOMENTE LEITURA]")
+        print("Os dados exibidos são da última sincronização.")
+        print("Operações de estoque estão temporariamente bloqueadas.")
+
     print("0 - Encerrar o sistema")
     print("1 - Visualizar Estoque Atual")
-    print("2 - Registrar Entrada de Produto")
-    print("3 - Registrar Saída de Produto")
-    print("4 - Gerenciar Produtos")
+
+    if not modo_somente_leitura:
+        print("2 - Registrar Entrada de Produto")
+        print("3 - Registrar Saída de Produto")
+        print("4 - Gerenciar Produtos")
 
     opcao_usuario = input("Escolha uma opção: ")
 
     return opcao_usuario
 
 # Submenu de visualização do estoque.
-def menu_visualizacao(estoque_produtos):
+def menu_visualizacao(estoque_produtos, modo_somente_leitura):
     while True:
         print("\n=== Visualizar Estoque ===")
         print("0 - Encerrar o sistema")
@@ -64,11 +78,19 @@ def menu_visualizacao(estoque_produtos):
             return True
 
         elif opcao == "1":
-            produtos = consulta_produtos()
+            if modo_somente_leitura:
+                produtos = consulta_produtos()
+            else:
+                produtos = estoque_produtos
+
             visualizar_estoque(produtos)
 
         elif opcao == "2":
-            produtos = consulta_produtos()
+            if modo_somente_leitura:
+                produtos = consulta_produtos()
+            else:
+                produtos = estoque_produtos
+
             if menu_categorias(produtos):
                 return True
 
@@ -506,28 +528,48 @@ def pesquisar_produto(estoque_produtos):
 def main():
 
     resultado_sincronizacao = verificar_sincronizacao()
-    if not resultado_sincronizacao:
+    modo_somente_leitura = (
+        resultado_sincronizacao == CONTINUAR_DADOS_ANTIGOS
+    )
+    if resultado_sincronizacao == ENCERRAR_SISTEMA:
         print("Encerrando o sistema...")
         return
 
-    estoque_produtos = carregar_estoque()
+    if resultado_sincronizacao not in [
+        CONTINUAR_DADOS_ANTIGOS,
+        SINCRONIZACAO_REALIZADA
+    ]:
+        raise ValueError(
+            f"Resultado de sincronização desconhecido: {resultado_sincronizacao}"
+        )
 
+    estoque_produtos = carregar_estoque()
+    
     while True:
-        opcao_usuario = exibir_menu()
+        opcao_usuario = exibir_menu(modo_somente_leitura)
 
         if opcao_usuario == "1":
-            if menu_visualizacao(estoque_produtos):
+            if menu_visualizacao(estoque_produtos, modo_somente_leitura):
                 break
 
         elif opcao_usuario == "2":
-            registrar_entrada(estoque_produtos)
+            if not modo_somente_leitura:
+                registrar_entrada(estoque_produtos)
+            else:
+                print("Operação indisponível no modo somente leitura.")
 
         elif opcao_usuario == "3":
-            registrar_saida(estoque_produtos)
+            if not modo_somente_leitura:
+                registrar_saida(estoque_produtos)
+            else:
+                print("Operação indisponível no modo somente leitura.")
 
         elif opcao_usuario == "4":
-            if gerenciamento_produtos(estoque_produtos):
-                break
+            if not modo_somente_leitura:
+                if gerenciamento_produtos(estoque_produtos):
+                    break
+            else:
+                print("Operação indisponível no modo somente leitura.")
 
         elif opcao_usuario == "0":
             print("Encerrando o sistema...")

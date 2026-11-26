@@ -3,6 +3,9 @@ import sqlite3
 import json
 import hashlib
 from datetime import datetime
+SINCRONIZACAO_REALIZADA = "sincronizacao_realizada"
+CONTINUAR_DADOS_ANTIGOS = "continuar_dados_antigos"
+ENCERRAR_SISTEMA = "encerrar_sistema"
 
 conexao = sqlite3.connect("estoque.db")
 conexao.execute("PRAGMA foreign_keys = ON")
@@ -51,6 +54,7 @@ cursor.execute("""
 
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS sincronizacao(
+        id_sincronizacao INTEGER PRIMARY KEY AUTOINCREMENT,
         hash_anterior TEXT,
         data_ultima_atualizacao TEXT
     )
@@ -73,6 +77,23 @@ def atualizar_estrutura_banco():
         cursor.execute("""
             ALTER TABLE produtos
             ADD COLUMN codigo_produto TEXT
+        """)
+
+    cursor.execute("PRAGMA table_info(sincronizacao)")
+    colunas_sincronizacao = [
+        coluna[1] for coluna in cursor.fetchall()
+    ]
+
+    if "id_sincronizacao" not in colunas_sincronizacao:
+        cursor.execute("""
+            ALTER TABLE sincronizacao
+            ADD COLUMN id_sincronizacao INTEGER
+        """)
+
+        cursor.execute("""
+            UPDATE sincronizacao
+            SET id_sincronizacao = 1
+            WHERE id_sincronizacao IS NULL
         """)
     conexao.commit()
 
@@ -185,9 +206,10 @@ def verificar_sincronizacao():
                     (hash_atual, data_atual)
                 )
                 conexao.commit()
-                return True
+                return SINCRONIZACAO_REALIZADA
             elif resposta_sincronizacao.strip().lower() in respostas_negativas:
                 print("Sincronização cancelada.")
+                return ENCERRAR_SISTEMA
         else:
             if hash_atual != ultima_sincronizacao[0]:
                 resposta_sincronizacao = input("Você deseja atualizar o banco de dados? (s/n):")
@@ -202,11 +224,12 @@ def verificar_sincronizacao():
                         """
                         UPDATE sincronizacao
                         SET hash_anterior = ?, data_ultima_atualizacao = ?
+                        WHERE id_sincronizacao = ?
                         """,
-                        (hash_atual, data_atual)
+                        (hash_atual, data_atual, 1)
                     )
                     conexao.commit()
-                    return True
+                    return SINCRONIZACAO_REALIZADA
                 elif resposta_sincronizacao.strip().lower() in respostas_negativas:
                     print("Sincronização cancelada.")
                     continuar_sistema = input("Deseja continuar usando os dados antigos do SQL? (s/n):")
@@ -217,13 +240,13 @@ def verificar_sincronizacao():
 
                     if continuar_sistema.strip().lower() in respostas_positivas:
                         print(f"O sistema continuará utilizando dados do SQL, a data da última atualização é {ultima_sincronizacao[1]}.")
-                        return True
+                        return CONTINUAR_DADOS_ANTIGOS
                     elif continuar_sistema.strip().lower() in respostas_negativas:
                         print("Você optou por não continuar utilizando os dados antigos, o sistema vai ser encerrado.")
-                        return False
+                        return ENCERRAR_SISTEMA
             else:
                 print("Hashes iguais: Nenhuma alteração será feita.")
-                return True
+                return SINCRONIZACAO_REALIZADA
 
     except Exception as e:
         print(f"Erro ao verificar sincronização: {e}")
@@ -259,4 +282,3 @@ def consulta_produtos():
 
         produtos.append(produto)
     return produtos
-
